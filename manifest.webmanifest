@@ -1,14 +1,14 @@
 {
   "id": "./",
-  "name": "Five newsletter post ideas from the latest news",
+  "name": "Newsletter post ideas from the latest news",
   "short_name": "Post ideas",
-  "description": "Singapore and global digital transformation, enterprise IT and cloud, logistics technology, each linked to the BCG RISE Digital Transformation and Change Management course",
+  "description": "Singapore and global digital transformation, enterprise IT and cloud, and logistics technology, each linked to the BCG RISE Digital Transformation and Change Management course",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0b2545",
-  "theme_color": "#0b2545",
+  "background_color": "#102b51",
+  "theme_color": "#102b51",
   "lang": "en",
   "icons": [
     {
