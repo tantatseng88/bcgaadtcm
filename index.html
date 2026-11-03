@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#000">
+<meta name="theme-color" content="#102b51">
 <title>Five newsletter post ideas from this week’s news</title>
 <meta property="og:type" content="website">
 <meta property="og:title" content="Five newsletter post ideas from this week’s news">
@@ -100,6 +100,37 @@ body.idle,body.idle *{cursor:none!important}
 .r8{background:#0e8a8a;border:1px solid #0e8a8a}
 .r9{background:#f3f7fa;border:1px solid #f3f7fa}
 </style>
+<!-- pwa:begin -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Post ideas">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<style id="pwa-css">
+.pwa-stamp,.pwa-bar,.pwa-ios{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.pwa-stamp{position:fixed;z-index:25;left:max(10px,env(safe-area-inset-left));top:calc(8px + env(safe-area-inset-top));
+ max-width:calc(100vw - 84px);padding:4px 10px;border-radius:12px;background:rgba(16,24,40,.8);color:#fff;
+ font-size:11px;line-height:1.3;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);pointer-events:none;transition:opacity .35s ease}
+.pwa-bar{position:fixed;z-index:30;left:50%;transform:translateX(-50%);bottom:calc(66px + env(safe-area-inset-bottom));
+ display:flex;flex-direction:column;align-items:center;gap:8px;max-width:calc(100vw - 24px)}
+.pwa-row{display:flex;align-items:center;gap:4px;transition:opacity .35s ease}
+.pwa-btn{appearance:none;border:1px solid rgba(255,255,255,.35);min-height:44px;padding:0 18px;border-radius:999px;background:#1f2937;color:#fff;
+ white-space:nowrap;font:600 14px/1 system-ui,-apple-system,sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.pwa-btn-update{background:#ffc000;border-color:#ffc000;color:#111}
+.pwa-x{appearance:none;border:0;width:44px;height:44px;border-radius:50%;background:rgba(16,24,40,.8);color:#fff;font-size:20px;cursor:pointer}
+.pwa-btn:focus-visible,.pwa-x:focus-visible,.pwa-card button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px #1f2937}
+.pwa-row[hidden],.pwa-stamp[hidden],.pwa-ios[hidden]{display:none}
+body.idle .pwa-stamp,body.idle #pwa-install-row{opacity:0;pointer-events:none}
+.pwa-ios{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.55)}
+.pwa-card{max-width:340px;width:100%;padding:20px;border-radius:16px;background:#fff;color:#111;font-size:15px;line-height:1.45}
+.pwa-card h2{margin:0 0 10px;font-size:17px}
+.pwa-card ol{margin:0 0 14px;padding-left:20px}
+.pwa-card li{margin:6px 0}
+.pwa-card button{appearance:none;border:0;width:100%;min-height:44px;border-radius:10px;background:#1f2937;color:#fff;font:600 15px system-ui,sans-serif;cursor:pointer}
+</style>
+<!-- pwa:end -->
 </head>
 <body class="m-paged" data-tone="dark">
 <div class="bar" aria-hidden="true"><i id="barfill"></i></div>
@@ -201,5 +232,86 @@ document.addEventListener('keydown',function(e){if(e.key==='Tab')wake();});
 wake();
 })();
 </script>
+<!-- pwa:begin -->
+<div class="pwa-stamp chrome" id="pwa-stamp" role="status" aria-live="polite" hidden></div>
+<div class="pwa-bar chrome" id="pwa-bar">
+ <div class="pwa-row" id="pwa-install-row" hidden><button type="button" class="pwa-btn" id="pwa-install">Install app</button><button type="button" class="pwa-x" id="pwa-install-x" aria-label="Hide the install button">&times;</button></div>
+ <div class="pwa-row" id="pwa-update-row" hidden role="status" aria-live="polite"><button type="button" class="pwa-btn pwa-btn-update" id="pwa-update">Update available &middot; Update now</button></div>
+</div>
+<div class="pwa-ios" id="pwa-ios" role="dialog" aria-modal="true" aria-labelledby="pwa-ios-t" hidden>
+ <div class="pwa-card"><h2 id="pwa-ios-t">Install on iPhone or iPad</h2>
+  <ol><li>Tap the <b>Share</b> button (the square with an arrow) in Safari&rsquo;s toolbar.</li>
+  <li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b>. The app icon appears on your Home Screen.</li></ol>
+  <button type="button" id="pwa-ios-close">Got it</button></div>
+</div>
+<script>
+(function(){
+'use strict';
+var REPO='tantatseng88/bcgaadtcm',BRANCH='main';
+function $(i){return document.getElementById(i);}
+var installRow=$('pwa-install-row'),installBtn=$('pwa-install'),installX=$('pwa-install-x'),
+    updateRow=$('pwa-update-row'),updateBtn=$('pwa-update'),stamp=$('pwa-stamp'),dlg=$('pwa-ios'),dlgClose=$('pwa-ios-close');
+
+/* ---- latest update time on GitHub (latest commit on the branch) ---- */
+var KEY='pwa-gh-updated:'+REPO+'@'+BRANCH,lastCheck=0;
+function fmt(iso){try{return new Intl.DateTimeFormat(undefined,{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}).format(new Date(iso));}catch(e){return iso;}}
+function setStamp(t){stamp.textContent=t;stamp.hidden=false;}
+function checkGithub(){
+ lastCheck=Date.now();var c=null;
+ try{c=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
+ if(c&&c.iso){setStamp('Updated on GitHub: '+fmt(c.iso)+' (last known)');}else{setStamp('Checking GitHub…');}
+ fetch('https://api.github.com/repos/'+REPO+'/commits?sha='+encodeURIComponent(BRANCH)+'&per_page=1',{headers:{'Accept':'application/vnd.github+json'},cache:'no-store'})
+  .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();})
+  .then(function(a){var k=a&&a[0]&&a[0].commit,d=k&&((k.committer&&k.committer.date)||(k.author&&k.author.date));
+   if(!d)throw new Error('no date');try{localStorage.setItem(KEY,JSON.stringify({iso:d}));}catch(e){}
+   setStamp('Updated on GitHub: '+fmt(d));})
+  .catch(function(){if(!(c&&c.iso)){setStamp('GitHub update time unavailable offline');}});
+}
+checkGithub();
+
+/* ---- install button ---- */
+var deferred=null;
+function mq(q){return !!(window.matchMedia&&matchMedia(q).matches);}
+function installed(){return mq('(display-mode: standalone)')||mq('(display-mode: fullscreen)')||mq('(display-mode: minimal-ui)')||navigator.standalone===true;}
+var ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function hiddenByUser(){try{return sessionStorage.getItem('pwa-install-x')==='1';}catch(e){return false;}}
+function refreshInstall(){installRow.hidden=!((deferred||ios)&&!installed()&&!hiddenByUser());}
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferred=e;refreshInstall();});
+window.addEventListener('appinstalled',function(){deferred=null;installRow.hidden=true;});
+try{matchMedia('(display-mode: standalone)').addEventListener('change',refreshInstall);}catch(e){}
+if(navigator.getInstalledRelatedApps){navigator.getInstalledRelatedApps().then(function(a){if(a&&a.length){deferred=null;ios=false;refreshInstall();}}).catch(function(){});}
+installBtn.addEventListener('click',function(){
+ if(deferred){var p=deferred;deferred=null;installRow.hidden=true;p.prompt();
+  p.userChoice.then(function(){},function(){});   /* accepted: 'appinstalled' fires; dismissed: the browser offers it again later */
+ }else if(ios){dlg.hidden=false;dlgClose.focus();}
+});
+installX.addEventListener('click',function(){try{sessionStorage.setItem('pwa-install-x','1');}catch(e){}installRow.hidden=true;});
+function closeDlg(){dlg.hidden=true;installBtn.focus();}
+dlgClose.addEventListener('click',closeDlg);
+dlg.addEventListener('click',function(e){if(e.target===dlg)closeDlg();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!dlg.hidden){e.stopPropagation();closeDlg();}},true);
+refreshInstall();
+
+/* ---- service worker + update button ---- */
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
+ var updating=false;
+ function offerUpdate(worker){
+  updateRow.hidden=false;
+  updateBtn.onclick=function(){updating=true;updateBtn.disabled=true;updateBtn.textContent='Updating…';worker.postMessage({type:'SKIP_WAITING'});};
+ }
+ navigator.serviceWorker.addEventListener('controllerchange',function(){if(updating){location.reload();}});
+ navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(function(reg){
+  if(reg.waiting&&navigator.serviceWorker.controller){offerUpdate(reg.waiting);}
+  reg.addEventListener('updatefound',function(){var w=reg.installing;if(!w)return;
+   w.addEventListener('statechange',function(){if(w.state==='installed'&&navigator.serviceWorker.controller){offerUpdate(w);}});});
+  function check(){try{reg.update();}catch(e){}}
+  setInterval(check,60*60*1000);
+  document.addEventListener('visibilitychange',function(){
+   if(document.visibilityState==='visible'){check();if(Date.now()-lastCheck>10*60*1000){checkGithub();}}});
+ }).catch(function(){});
+}
+})();
+</script>
+<!-- pwa:end -->
 </body>
 </html>

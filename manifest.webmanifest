@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Five newsletter post ideas from this week’s news",
+  "short_name": "Post ideas",
+  "description": "Singapore and global digital transformation, enterprise IT and cloud, logistics technology, linked to the BCG RISE Digital Transformation and Change Management course",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#102b51",
+  "theme_color": "#102b51",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://tantatseng88.github.io/bcgaadtcm/manifest.webmanifest"
+    }
+  ],
+  "prefer_related_applications": false
+}
