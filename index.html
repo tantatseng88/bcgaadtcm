@@ -122,6 +122,14 @@ body.idle,body.idle *{cursor:none!important}
 .pwa-x{appearance:none;border:0;width:44px;height:44px;border-radius:50%;background:rgba(16,24,40,.8);color:#fff;font-size:20px;cursor:pointer}
 .pwa-btn:focus-visible,.pwa-x:focus-visible,.pwa-card button:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px #1f2937}
 .pwa-row[hidden],.pwa-stamp[hidden],.pwa-ios[hidden]{display:none}
+html,body{overscroll-behavior-y:contain}
+.pwa-pull{position:fixed;z-index:35;left:50%;top:calc(52px + env(safe-area-inset-top));
+ transform:translate(-50%,calc(var(--pull,0) * 1px - 70px));opacity:0;padding:9px 16px;border-radius:999px;background:rgba(16,24,40,.94);
+ color:#fff;font:600 13px/1.2 system-ui,-apple-system,sans-serif;white-space:nowrap;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.3);
+ transition:transform .25s ease,opacity .25s ease}
+.pwa-pull.drag{transition:none}
+.pwa-pull.show{opacity:1;--pull:70}
+.pwa-pull[hidden]{display:none}
 body.idle .pwa-stamp,body.idle #pwa-install-row{opacity:0;pointer-events:none}
 .pwa-ios{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.55)}
 .pwa-card{max-width:340px;width:100%;padding:20px;border-radius:16px;background:#fff;color:#111;font-size:15px;line-height:1.45}
@@ -238,6 +246,7 @@ wake();
  <div class="pwa-row" id="pwa-install-row" hidden><button type="button" class="pwa-btn" id="pwa-install">Install app</button><button type="button" class="pwa-x" id="pwa-install-x" aria-label="Hide the install button">&times;</button></div>
  <div class="pwa-row" id="pwa-update-row" hidden role="status" aria-live="polite"><button type="button" class="pwa-btn pwa-btn-update" id="pwa-update">Update available &middot; Update now</button></div>
 </div>
+<div class="pwa-pull" id="pwa-pull" role="status" aria-live="polite" hidden></div>
 <div class="pwa-ios" id="pwa-ios" role="dialog" aria-modal="true" aria-labelledby="pwa-ios-t" hidden>
  <div class="pwa-card"><h2 id="pwa-ios-t">Install on iPhone or iPad</h2>
   <ol><li>Tap the <b>Share</b> button (the square with an arrow) in Safari&rsquo;s toolbar.</li>
@@ -249,6 +258,7 @@ wake();
 'use strict';
 var REPO='tantatseng88/bcgaadtcm',BRANCH='main';
 function $(i){return document.getElementById(i);}
+var pullEl=$('pwa-pull'),swReg=null,offerUpdateFn=null;
 var installRow=$('pwa-install-row'),installBtn=$('pwa-install'),installX=$('pwa-install-x'),
     updateRow=$('pwa-update-row'),updateBtn=$('pwa-update'),stamp=$('pwa-stamp'),dlg=$('pwa-ios'),dlgClose=$('pwa-ios-close');
 
@@ -299,8 +309,10 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
   updateRow.hidden=false;
   updateBtn.onclick=function(){updating=true;updateBtn.disabled=true;updateBtn.textContent='Updating…';worker.postMessage({type:'SKIP_WAITING'});};
  }
+ offerUpdateFn=offerUpdate;
  navigator.serviceWorker.addEventListener('controllerchange',function(){if(updating){location.reload();}});
  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(function(reg){
+  swReg=reg;
   if(reg.waiting&&navigator.serviceWorker.controller){offerUpdate(reg.waiting);}
   reg.addEventListener('updatefound',function(){var w=reg.installing;if(!w)return;
    w.addEventListener('statechange',function(){if(w.state==='installed'&&navigator.serviceWorker.controller){offerUpdate(w);}});});
@@ -310,6 +322,60 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
    if(document.visibilityState==='visible'){check();if(Date.now()-lastCheck>10*60*1000){checkGithub();}}});
  }).catch(function(){});
 }
+/* ---- pull down to check for an update ---- */
+var TH=70,py=0,px=0,pd=0,pTrack=false,pBusy=false,pTimer=null;
+function atTop(el){
+ if(document.body.classList.contains('m-paged')){var sl=el&&el.closest?el.closest('.slide'):null;return !sl||sl.scrollTop<=0;}
+ return (window.pageYOffset||document.documentElement.scrollTop||0)<=0;
+}
+function pullText(t){pullEl.textContent=t;}
+function pullHide(){pullEl.classList.remove('show','drag');pullEl.style.removeProperty('--pull');pullEl.style.opacity='';
+ clearTimeout(pTimer);pTimer=setTimeout(function(){if(!pBusy){pullEl.hidden=true;}},300);}
+function pullDrag(d){
+ var v=d<TH?d:TH+(d-TH)*0.3;
+ pullEl.hidden=false;pullEl.classList.add('drag');pullEl.classList.remove('show');
+ pullEl.style.setProperty('--pull',String(Math.min(v,TH+40)));pullEl.style.opacity=String(Math.min(1,d/50));
+ pullText(d>=TH?'Release to check for updates':'Pull down to check for updates');
+}
+function pullShow(t){pullEl.hidden=false;pullEl.classList.remove('drag');pullEl.style.removeProperty('--pull');pullEl.style.opacity='';
+ void pullEl.offsetWidth;pullEl.classList.add('show');pullText(t);}
+function settle(reg){   /* true when a newer version is installed and waiting */
+ return new Promise(function(res){
+  var ctl=!!navigator.serviceWorker.controller;
+  if(reg.waiting&&ctl){res(true);return;}
+  var w=reg.installing;if(!w){res(false);return;}
+  var t=setTimeout(function(){res(false);},15000);
+  function chk(){if(w.state==='installed'){clearTimeout(t);res(ctl);}else if(w.state==='redundant'){clearTimeout(t);res(false);}}
+  w.addEventListener('statechange',chk);chk();
+ });
+}
+function pullDone(msg,ms){pBusy=false;pullShow(msg);clearTimeout(pTimer);pTimer=setTimeout(pullHide,ms||2200);}
+function manualCheck(){
+ pBusy=true;pullShow('Checking for updates…');lastCheck=0;checkGithub();
+ if(!swReg){pullDone(('serviceWorker' in navigator)?'Updates are not available here':'Updates are not available in this browser',2800);return;}
+ if(navigator.onLine===false){pullDone('You’re offline – can’t check for updates',2800);return;}
+ swReg.update().then(function(){return settle(swReg);}).then(function(found){
+  if(found){if(offerUpdateFn&&swReg.waiting){offerUpdateFn(swReg.waiting);}pullDone('Update available – tap Update now',3200);}
+  else{pullDone('No update found');}
+ }).catch(function(){pullDone(navigator.onLine===false?'You’re offline – can’t check for updates':'Couldn’t check for updates',2800);});
+}
+document.addEventListener('touchstart',function(e){
+ pTrack=false;
+ if(pBusy||e.touches.length!==1||!dlg.hidden)return;
+ if(!atTop(e.target))return;
+ py=e.touches[0].clientY;px=e.touches[0].clientX;pd=0;pTrack=true;
+},{passive:true});
+document.addEventListener('touchmove',function(e){
+ if(!pTrack)return;
+ var t=e.touches[0],dy=t.clientY-py,dx=t.clientX-px;
+ if(dy<=0||Math.abs(dx)>dy*0.8){if(pd>0){pullHide();}pTrack=false;pd=0;return;}   /* upward or sideways: not a pull */
+ pd=dy;pullDrag(dy);
+},{passive:true});
+function pullEnd(){if(!pTrack)return;pTrack=false;
+ if(pd>=TH){manualCheck();}else if(pd>0){pullHide();}
+ pd=0;}
+document.addEventListener('touchend',pullEnd,{passive:true});
+document.addEventListener('touchcancel',function(){if(pTrack){pTrack=false;pd=0;pullHide();}},{passive:true});
 })();
 </script>
 <!-- pwa:end -->
