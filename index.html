@@ -141,7 +141,7 @@ html{font-size:calc(var(--base) * var(--tscale,1))}
 .pwa-ts #pwa-ts-dec{font-size:13px}.pwa-ts #pwa-ts-inc{font-size:19px}
 .pwa-ts #pwa-ts-val{min-width:52px;font-size:12px;font-weight:600;padding:0 2px}
 body.idle .pwa-ts{opacity:0;pointer-events:none}
-@media(max-width:560px){.pwa-stamp{max-width:calc(100vw - 214px);padding:4px 8px;font-size:10px}}
+@media(max-width:560px){.pwa-stamp{max-width:calc(100vw - 214px);padding:4px 6px;font-size:9.5px}}
 .pwa-pull{position:fixed;z-index:35;left:50%;top:calc(52px + env(safe-area-inset-top));
  transform:translate(-50%,calc(var(--pull,0) * 1px - 70px));opacity:0;padding:9px 16px;border-radius:999px;background:rgba(16,24,40,.94);
  color:#fff;font:600 13px/1.2 system-ui,-apple-system,sans-serif;white-space:nowrap;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.3);
@@ -306,8 +306,8 @@ tsApply(tsGet(),false);
 /* ---- latest update time on GitHub (latest commit on the branch) ---- */
 var KEY='pwa-gh-updated:'+REPO+'@'+BRANCH,lastCheck=0;
 function narrow(){return window.innerWidth<560;}
-function fmt(iso){try{return new Intl.DateTimeFormat(undefined,narrow()?{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:'short'}:{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}).format(new Date(iso));}catch(e){return iso;}}
-function pre(){return narrow()?'Updated ':'Updated on GitHub: ';}
+function fmt(iso){try{return new Intl.DateTimeFormat(undefined,narrow()?{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:false,timeZoneName:window.innerWidth<380?undefined:'short'}:{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',timeZoneName:'short'}).format(new Date(iso));}catch(e){return iso;}}
+function pre(){return 'Updated on: ';}
 /* the chip is one line and is shown for 3 seconds each time a slide appears (and on first load) */
 var stampTimer=null;
 function flashStamp(){if(!stamp.textContent)return;stamp.classList.add('show');clearTimeout(stampTimer);stampTimer=setTimeout(function(){stamp.classList.remove('show');},3000);}
@@ -322,7 +322,7 @@ function checkGithub(){
   .then(function(a){var k=a&&a[0]&&a[0].commit,d=k&&((k.committer&&k.committer.date)||(k.author&&k.author.date));
    if(!d)throw new Error('no date');try{localStorage.setItem(KEY,JSON.stringify({iso:d}));}catch(e){}
    setStamp(pre()+fmt(d));})
-  .catch(function(){if(!(c&&c.iso)){setStamp(narrow()?'Update time unavailable':'GitHub update time unavailable offline');}});
+  .catch(function(){if(!(c&&c.iso)){setStamp('Updated on: unavailable');}});
 }
 checkGithub();
 
