@@ -1,6 +1,6 @@
 /* Service worker for the deck PWA. VERSION changes whenever the page changes, so browsers see a new
    sw.js, install it in the background and the page offers an Update button (nothing switches by itself). */
-const VERSION = '3214660e2333';
+const VERSION = '6c10bbed7c63';
 const CACHE = 'deck-' + VERSION;
 const FONTS = 'deck-fonts';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png',
