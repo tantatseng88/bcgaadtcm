@@ -134,7 +134,8 @@ html,body{overscroll-behavior-y:contain}
 html{font-size:calc(var(--base) * var(--tscale,1))}
 .pwa-ts{position:fixed;z-index:26;top:calc(10px + env(safe-area-inset-top));right:calc(58px + env(safe-area-inset-right));height:40px;
  display:flex;align-items:center;border-radius:999px;background:rgba(16,24,40,.82);color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
- -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:opacity .35s ease}
+ -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .5s ease}
+.pwa-ts.show{opacity:1;pointer-events:auto}
 .pwa-ts button{appearance:none;border:0;background:transparent;color:inherit;cursor:pointer;height:40px;min-width:44px;padding:0 6px;font:700 15px/1 system-ui,sans-serif;border-radius:999px}
 .pwa-ts button:disabled{opacity:.35;cursor:default}
 .pwa-ts button:focus-visible{outline:2px solid #fff;outline-offset:-3px}
@@ -302,6 +303,15 @@ tsDec.addEventListener('click',function(){tsStep(-1);});
 tsInc.addEventListener('click',function(){tsStep(1);});
 tsVal.addEventListener('click',function(){tsApply(100,true);});
 tsApply(tsGet(),false);
+/* the pill is shown for 3 seconds when the page opens, then fades; it comes back when the pointer/finger goes to the top-right corner */
+var tsEl=$('pwa-ts'),tsTimer=null;
+function tsShow(){tsEl.classList.add('show');clearTimeout(tsTimer);tsTimer=setTimeout(tsHide,3000);}
+function tsHide(){var kb=false;try{kb=!!tsEl.querySelector(':focus-visible');}catch(e){}if((mq('(hover: hover)')&&tsEl.matches(':hover'))||kb){tsTimer=setTimeout(tsHide,1500);return;}tsEl.classList.remove('show');}
+function tsZone(e){if(e.clientY<64&&e.clientX>window.innerWidth-230){tsShow();}}
+document.addEventListener('pointermove',tsZone,{passive:true});document.addEventListener('pointerdown',tsZone,{passive:true});
+tsEl.addEventListener('click',tsShow);
+tsEl.addEventListener('pointerleave',function(){if(tsEl.classList.contains('show'))tsShow();});
+tsShow();
 
 /* ---- latest update time on GitHub (latest commit on the branch) ---- */
 var KEY='pwa-gh-updated:'+REPO+'@'+BRANCH,lastCheck=0;
